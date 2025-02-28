@@ -1,0 +1,27 @@
+# Python
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+
+# Virtual environment
+vintage-venv/
+venv/
+*.env
+
+# Docker
+*.log
+*.db
+docker-compose.override.yml
+
+# Django
+*.sqlite3
+db.sqlite3
+/static/
+
+# IDE files
+.vscode/
+.idea/
+
+# PyCharm
+.idea/
