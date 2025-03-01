@@ -1,7 +1,24 @@
+
 from django.db import models
+from users.models import User
 
 
-# CATEGORY MODEL
+# ============================
+# Product Model
+# ============================
+class Product(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    category = models.ForeignKey('Category', related_name='products', on_delete=models.CASCADE)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    image = models.ImageField(upload_to='products/', blank=True, null=True)
+    stock = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name
+    
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
 
@@ -9,106 +26,118 @@ class Category(models.Model):
         return self.name
 
 
-
-# PRODUCT MODEL
-class Product(models.Model):
-    name = models.CharField(max_length=255)
-    SKU = models.CharField(max_length=100, unique=True)
-    description = models.TextField(blank=True, null=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    stock = models.PositiveIntegerField()
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
-    image = models.ImageField(upload_to='product_images/', blank=True, null=True)
-
-    def __str__(self):
-        return self.name
-    
-
-
-# ORDER MODELS
-class Order(models.Model):
-    STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('shipped', 'Shipped'),
-        ('delivered', 'Delivered'),
-        ('canceled', 'Canceled'),
-    ]
-
-    customer = models.ForeignKey("users.Customer", on_delete=models.CASCADE)
-    total_price = models.DecimalField(max_digits=10, decimal_places=2)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+# ============================
+# Cart & CartItem Models
+# ============================
+class Cart(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Order {self.id} - {self.customer.user.username}"
-    
-class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+        return f"Cart for {self.user.username}"
 
-    def __str__(self):
-        return f"{self.quantity} x {self.product.name} in Order {self.order.id}"
-
-
-
-# CART MODELS
-class Cart(models.Model):
-    customer = models.OneToOneField("users.Customer", on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"Cart of {self.customer.user.username}"
 
 class CartItem(models.Model):
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField()
+    cart = models.ForeignKey(Cart, related_name="items", on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, related_name="cart_items", on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
 
     def __str__(self):
-        return f"{self.quantity} x {self.product.name} in {self.cart.customer.user.username}'s cart"
-
-
-
-# WISHLIST MODEL
-class Wishlist(models.Model):
-    customer = models.ForeignKey("users.Customer", on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.customer.user.username} wants {self.product.name}"
+        return f"{self.quantity} x {self.product.name} in cart"
     
 
 
-# PAYMENT MODEL
-class Payment(models.Model):
-    PAYMENT_METHODS = [
-        ('card', 'Credit Card'),
-        ('paypal', 'PayPal'),
+# ============================
+# Order & OrderItem Models
+# ============================
+class Order(models.Model):
+    STATUS_CHOICES = [
+        ("Pending", "Pending"),
+        ("Processing", "Processing"),
+        ("Shipped", "Shipped"),
+        ("Delivered", "Delivered"),
+        ("Cancelled", "Cancelled"),
     ]
 
-    customer = models.ForeignKey("users.Customer", on_delete=models.CASCADE)
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    payment_method = models.CharField(max_length=50, choices=PAYMENT_METHODS)
-    payment_status = models.CharField(max_length=20, choices=[('pending', 'Pending'), ('completed', 'Completed'), ('failed', 'Failed')], default='pending')
+    user = models.ForeignKey(User, related_name="orders", on_delete=models.CASCADE)
+    shipping_address = models.TextField()
+    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Pending")
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Order {self.id} for {self.user.username}"
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, related_name="order_items", on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+    price_at_time_of_order = models.DecimalField(max_digits=10, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.quantity} x {self.product.name} in order"
+
+
+# ============================
+# Shipment Model
+# ============================
+class Shipment(models.Model):
+    STATUS_CHOICES = [
+        ("Pending", "Pending"),
+        ("Shipped", "Shipped"),
+        ("In Transit", "In Transit"),
+        ("Delivered", "Delivered"),
+        ("Failed", "Failed"),
+    ]
+
+    order = models.OneToOneField(Order, related_name="shipment", on_delete=models.CASCADE)
+    tracking_number = models.CharField(max_length=100, blank=True, null=True)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Pending")
+    shipped_date = models.DateTimeField(blank=True, null=True)
+    estimated_delivery_date = models.DateTimeField(blank=True, null=True)
+    actual_delivery_date = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return f"Shipment for Order {self.order.id} - {self.status}"
+
+
+# ============================
+# Payment Model
+# ============================
+class Payment(models.Model):
+    PAYMENT_METHODS = [
+        ("Credit Card", "Credit Card"),
+        ("PayPal", "PayPal"),
+        ("Bank Transfer", "Bank Transfer"),
+        ("Cash on Delivery", "Cash on Delivery"),
+    ]
+
+    STATUS_CHOICES = [
+        ("Pending", "Pending"),
+        ("Completed", "Completed"),
+        ("Failed", "Failed"),
+    ]
+
+    order = models.OneToOneField(Order, related_name="payment", on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = models.CharField(max_length=50, choices=PAYMENT_METHODS)
+    payment_status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Pending")
+    transaction_id = models.CharField(max_length=255, blank=True, null=True)
+    payment_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Payment for Order {self.order.id} - {self.payment_status}"
-    
 
 
-# SHIPMENT MODEL
-class Shipment(models.Model):
-    customer = models.ForeignKey("users.Customer", on_delete=models.CASCADE)
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    shipment_date = models.DateTimeField(auto_now_add=True)
-    address = models.TextField()
-    city = models.CharField(max_length=100)
-    state = models.CharField(max_length=50, blank=True, null=True)
-    country = models.CharField(max_length=50, blank=True, null=True)
-    zip_code = models.CharField(max_length=10)
-    is_delivered = models.BooleanField(default=False)
+# ============================
+# Wishlist Model
+# ============================
+class Wishlist(models.Model):
+    user = models.ForeignKey(User, related_name="wishlists", on_delete=models.CASCADE)
+    products = models.ManyToManyField(Product, related_name="wishlists")
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Shipment for Order {self.order.id} - {'Delivered' if self.is_delivered else 'Pending'}"
+        return f"Wishlist for {self.user.username}"
