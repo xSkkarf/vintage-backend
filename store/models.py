@@ -1,6 +1,6 @@
 
 from django.db import models
-from users.models import User
+from users.models import CustomUser
 
 
 # ============================
@@ -30,7 +30,7 @@ class Category(models.Model):
 # Cart & CartItem Models
 # ============================
 class Cart(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -59,7 +59,7 @@ class Order(models.Model):
         ("Cancelled", "Cancelled"),
     ]
 
-    user = models.ForeignKey(User, related_name="orders", on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, related_name="orders", on_delete=models.CASCADE)
     shipping_address = models.TextField()
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="Pending")
@@ -135,7 +135,7 @@ class Payment(models.Model):
 # Wishlist Model
 # ============================
 class Wishlist(models.Model):
-    user = models.ForeignKey(User, related_name="wishlists", on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, related_name="wishlists", on_delete=models.CASCADE)
     products = models.ManyToManyField(Product, related_name="wishlists")
     created_at = models.DateTimeField(auto_now_add=True)
 

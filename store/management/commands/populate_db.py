@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from store.models import Product, Cart, CartItem, Order, OrderItem, Shipment, Payment, Wishlist, Category
 
-User = get_user_model()  # Ensure Django uses the correct custom user model
+CustomUser = get_user_model()  # Ensure Django uses the correct custom user model
 
 
 class Command(BaseCommand):
@@ -48,7 +48,7 @@ class Command(BaseCommand):
         ]
 
         for user_data in users_data:
-            user, created = User.objects.get_or_create(
+            user, created = CustomUser.objects.get_or_create(
                 username=user_data["username"],
                 defaults={
                     "email": user_data["email"],
@@ -100,7 +100,7 @@ class Command(BaseCommand):
     def create_carts(self):
         self.stdout.write("Creating carts and adding items...")
 
-        users = User.objects.all()
+        users = CustomUser.objects.all()
         products = Product.objects.all()
 
         for user in users:
@@ -117,7 +117,7 @@ class Command(BaseCommand):
     def create_orders(self):
         self.stdout.write("Creating test orders...")
 
-        users = User.objects.all()
+        users = CustomUser.objects.all()
         products = Product.objects.all()
 
         for user in users:
@@ -183,7 +183,7 @@ class Command(BaseCommand):
     def create_wishlists(self):
         self.stdout.write("Creating wishlists...")
 
-        users = User.objects.all()
+        users = CustomUser.objects.all()
         products = Product.objects.all()
 
         for user in users:
