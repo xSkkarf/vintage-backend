@@ -74,20 +74,22 @@ class Command(BaseCommand):
 
         # Define test products and assign them to categories
         products_data = [
-            {"name": "Vintage Rose", "description": "A classic rose perfume.", "price": 49.99, "stock": 50, "category": categories["Floral"]},
-            {"name": "Ocean Breeze", "description": "A fresh ocean scent.", "price": 59.99, "stock": 40, "category": categories["Fresh"]},
-            {"name": "Night Elegance", "description": "A mysterious and deep fragrance.", "price": 79.99, "stock": 30, "category": categories["Woody"]},
-            {"name": "Citrus Zest", "description": "A vibrant citrus-based perfume.", "price": 39.99, "stock": 60, "category": categories["Citrus"]},
+            {"name": "Vintage Rose", "description": "A classic rose perfume.", "price": 49.99, "stock": 50, "category": categories["Floral"], "seller_id": 2},
+            {"name": "Ocean Breeze", "description": "A fresh ocean scent.", "price": 59.99, "stock": 40, "category": categories["Fresh"], "seller_id": 3},
+            {"name": "Night Elegance", "description": "A mysterious and deep fragrance.", "price": 79.99, "stock": 30, "category": categories["Woody"], "seller_id": 4},
+            {"name": "Citrus Zest", "description": "A vibrant citrus-based perfume.", "price": 39.99, "stock": 60, "category": categories["Citrus"], "seller_id": 3},
         ]
 
         for product_data in products_data:
+            seller = CustomUser.objects.get(id=product_data["seller_id"])
             Product.objects.get_or_create(
                 name=product_data["name"],
                 defaults={
                     "description": product_data["description"],
                     "price": product_data["price"],
                     "stock": product_data["stock"],
-                    "category": product_data["category"]
+                    "category": product_data["category"],
+                    "seller": seller
                 }
             )
 

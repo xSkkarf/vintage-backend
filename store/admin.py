@@ -6,7 +6,7 @@ from .models import Product, Cart, CartItem, Order, OrderItem, Shipment, Payment
 # ============================
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('id', 'name', 'price', 'stock', 'created_at')
+    list_display = ('name', 'id', 'seller', 'price', 'stock', 'created_at')
     search_fields = ('name',)
     list_filter = ('created_at', 'updated_at')
     ordering = ('-created_at',)
