@@ -35,12 +35,12 @@ class LogInUserView(APIView):
             response.set_cookie(key="access_token",
                                 value=access_token,
                                 httponly=True,
-                                secure=False,
+                                secure=True,
                                 samesite='None')
             response.set_cookie(key="refresh_token",
                                 value=str(refresh),
                                 httponly=True,
-                                secure=False,
+                                secure=True,
                                 samesite='None')
             return response
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -76,12 +76,12 @@ class CookieTokenRefreshView(TokenRefreshView):
             response.set_cookie(key="access_token",
                                 value=access_token,
                                 httponly=True,
-                                secure=False,
+                                secure=True,
                                 samesite='None')
             response.set_cookie(key="refresh_token",
                                 value=str(refresh),
                                 httponly=True,
-                                secure=False,
+                                secure=True,
                                 samesite='None')
             
             return response
