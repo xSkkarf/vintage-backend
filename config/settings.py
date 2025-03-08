@@ -62,7 +62,8 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000", 
+    "http://localhost:3000",
+    "https://vintage-6a044de4c7cc.herokuapp.com"
 ]
 
 ROOT_URLCONF = 'config.urls'
